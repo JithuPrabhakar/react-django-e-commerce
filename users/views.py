@@ -4,8 +4,14 @@ from rest_framework import status
 from .serializers import RegisterSerializer, LoginSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny
-
 from rest_framework.permissions import IsAuthenticated
+from .permissions import IsMerchant
+
+class MerchantOnlyView(APIView):
+    permission_classes = [IsMerchant]
+    
+    def get(self, request):  
+        return Response({"message":"Welcome Merchant"})
 
 class TestProtectedView(APIView):
     permission_classes = [IsAuthenticated]
