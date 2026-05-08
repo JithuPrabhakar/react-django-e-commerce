@@ -67,3 +67,93 @@ class LoginView(APIView):
             })
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+# dashboard details
+
+# Customer dashboard
+from orders.models import Order
+from cart.models import Cart
+
+class CustomerDashboardView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        orders = Order.objects.filter(user=request.user)
+        cart = Cart.objects.get(user=request.user)
+
+        total_orders = orders.count()
+        total_cart_items = cart.items.count()
+
+        return Response({
+            "username": request.user.username,
+            "role": request.user.role,
+            "total_orders": total_orders,
+            "total_cart_items": total_cart_items
+        })
+        
+# Merchant Dashboard
+from products.models import Product
+from orders.models import OrderItem
+
+class MerchantDashboardView(APIView):
+    permission_classes = [IsMerchant]
+
+    def get(self, request):
+        products = Product.objects.filter(seller=request.user)
+
+        total_products = products.count()
+
+        sold_items = OrderItem.objects.filter(
+            product__seller=request.user
+        )
+
+        total_sales = sum(
+            item.price * item.quantity for item in sold_items
+        )
+
+        return Response({
+            "merchant": request.user.username,
+            "total_products": total_products,
+            "total_sales": total_sales
+        })
+        
+# Admin Dashboard
+from .models import User
+from .permissions import IsAdmin
+
+class AdminDashboardView(APIView):
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        total_users = User.objects.count()
+        total_products = Product.objects.count()
+        total_orders = Order.objects.count()
+
+        merchants = User.objects.filter(role='merchant').count()
+        customers = User.objects.filter(role='customer').count()
+
+        return Response({
+            "total_users": total_users,
+            "total_products": total_products,
+            "total_orders": total_orders,
+            "merchants": merchants,
+            "customers": customers
+        })
+        
+# changes customer to merchant
+class UpgradeToMerchantView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        if request.user.role == 'merchant':
+            return Response({
+                "message": "Already a merchant"
+            })
+
+        request.user.role = 'merchant'
+        request.user.save()
+
+        return Response({
+            "message": "Upgraded to merchant successfully"
+        })

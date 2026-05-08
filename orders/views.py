@@ -19,14 +19,23 @@ class PlaceOrderView(APIView):
         order = Order.objects.create(user=request.user)
 
         total_price = 0
+        
 
         for item in cart_items:
+            if item.quantity > item.product.stock:
+                return Response({
+                    "error": f"Not enough stock for {item.product.name}"
+                }, status=400)
+                
             OrderItem.objects.create(
                 order=order,
                 product=item.product,
                 quantity=item.quantity,
                 price=item.product.price
             )
+            
+            item.product.stock -= item.quantity
+            item.product.save()
 
             total_price += item.product.price * item.quantity
 
