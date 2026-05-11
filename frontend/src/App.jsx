@@ -6,6 +6,7 @@ import RegisterPage from "./pages/RegisterPage"
 import CustomerDashboard from "./pages/CustomerDashboard"
 import MerchantDashboard from "./pages/MerchantDashboard"
 import AdminDashboard from "./pages/AdminDashboard"
+import CartPage from "./pages/CartPage"
 import ProtectedRoute from "./routes/ProtectedRoutes"
 import Navbar from "./components/Navbar"
 
@@ -39,6 +40,15 @@ function App() {
           element={
             <ProtectedRoute role="admin">
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute>
+              <CartPage />
             </ProtectedRoute>
           }
         />
